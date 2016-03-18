@@ -1,0 +1,12 @@
+{
+	"name": "orion-tools-server",
+	"description": "Orion tools server.",
+	"version": "0.0.1",
+	"license": "EPL-1.0",
+	"engines": {
+		"node": "*"
+	},
+	"dependencies": {
+		"vscode-languageserver": "^1.1.0"
+	}
+}

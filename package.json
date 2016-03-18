@@ -11,19 +11,27 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:extension.sayHello"
+		"onLanguage:javascript"
 	],
 	"main": "./extension",
 	"contributes": {
-		"commands": [{
-			"command": "extension.sayHello",
-			"title": "Hello World"
-		}]
+		"configuration": {
+			"type": "object",
+			"title": "Orion Tools Server Config",
+			"properties": {
+				"orionToolsServer.maxNumberOfProblems": {
+					"type": "number",
+					"default": 100,
+					"description": "Controls the maximum number of problems produced by the server."
+				}
+			}
+		}
 	},
 	"scripts": {
 		"postinstall": "node ./node_modules/vscode/bin/install"
 	},
 	"devDependencies": {
-		"vscode": "^0.11.0"
+		"vscode": "^0.11.0",
+        "vscode-languageclient": "^1.1.0"
 	}
 }
