@@ -13,7 +13,7 @@ function activate(context) {
     // Options to control the language client
     var clientOptions = {
         // Register the server for plain text documents
-        documentSelector: ['plaintext'],
+        documentSelector: ['javascript'],
         synchronize: {
             // Synchronize the setting section 'languageServerExample' to the server
             configurationSection: 'orionToolsServer',
@@ -22,7 +22,7 @@ function activate(context) {
         }
     };
     // Create the language client and start the client.
-    var disposable = new vscode_languageclient.LanguageClient('Language Server Example', serverOptions, clientOptions).start();
+    var disposable = new vscode_languageclient.LanguageClient('orion-tools-server', serverOptions, clientOptions).start();
     // Push the disposable to the context's subscriptions so that the 
     // client can be deactivated on extension deactivation
     context.subscriptions.push(disposable);
