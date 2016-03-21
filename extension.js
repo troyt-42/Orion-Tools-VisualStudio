@@ -29,15 +29,27 @@ function activate(context) {
     context.subscriptions.push(disposable);
     
     client.onNotification({method:"testNotification"}, function(output){
-        console.log("notified!");
         console.log(output);
+        
+        vscode.languages.registerHoverProvider("javascript", {
+            provideHover: function (document, position, token) {
+                for(var i = 0; i < output.length; i++){
+                    var problem = output[i];
+                    var tempStart = new vscode.Position(problem.range.start.line, problem.range.start.character);
+                    var tempEnd = new vscode.Position(problem.range.end.line, problem.range.end.character);
+                    if (position.isAfterOrEqual(tempStart) && position.isBeforeOrEqual(tempEnd)){
+                        return new vscode.Hover("Quick Fix?");
+                    }
+                };
+                return null;
+            }
+        }); 
+        // output.forEach(function (problem) {
+            
+        // });
     });
     
-    vscode.languages.registerHoverProvider("javascript", {
-        provideHover: function (document, position, token) {
-            return new vscode.Hover("I am a hover!");
-        }
-    })
+
 }
 exports.activate = activate;
 //# sourceMappingURL=extension.js.map

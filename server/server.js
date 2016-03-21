@@ -96,10 +96,10 @@ documents.onDidChangeContent(function (change) {
                 var range, startPosition, endPosition = {};
                 if (problem.related && problem.related.range){
                     startPosition = change.document.positionAt(problem.related.range[0]);
-                    endPosition = change.document.positionAt(problem.related.range[0]);
+                    endPosition = change.document.positionAt(problem.related.range[1]);
                 } else {
                     startPosition = change.document.positionAt(problem.node.range[0]);
-                    endPosition = change.document.positionAt(problem.node.range[0]); 
+                    endPosition = change.document.positionAt(problem.node.range[1]); 
                 }
                 range = {
                     start: { line: startPosition.line, character: startPosition.character },
