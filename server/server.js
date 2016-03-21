@@ -7,6 +7,7 @@ var script_resolver = require("./scriptResolver.js");
 var orion_js_lib = require("./orionJavaScript.js");
 var orion_js = new orion_js_lib(new script_resolver(), false);
 
+
 var workspaceRoot;
 connection.onInitialize(function (params) {
     workspaceRoot = params.rootPath;
@@ -75,7 +76,7 @@ var defaults = {
 	"no-use-before-define" : 1,
 	"no-with" : 1,
 	"radix" : 1,
-	"semi" : 1,
+	"semi" : 2,
 	"type-checked-consistent-return" : 0,
 	"unnecessary-nls" : 1,
 	"use-isnan" : 2,
@@ -87,8 +88,33 @@ documents.onDidChangeContent(function (change) {
     var name = change.document._uri;
     var type = "full";
     orion_js.Tern.lint(name, defaults, null, [{type: type, name: name, text: text}], function(result, err){
-        console.log(result, err);
+        // console.log(result, err);
+        if (!err){
+            var diagnostics = [];
+            result.forEach(function(problem){
+                var range, startPosition, endPosition = {};
+                if (problem.related && problem.related.range){
+                    startPosition = change.document.positionAt(problem.related.range[0]);
+                    endPosition = change.document.positionAt(problem.related.range[0]);
+                } else {
+                    startPosition = change.document.positionAt(problem.node.range[0]);
+                    endPosition = change.document.positionAt(problem.node.range[0]); 
+                }
+                range = {
+                    start: { line: startPosition.line, character: startPosition.character },
+                    end: { line: endPosition.line, character: endPosition.character }
+                };
+                diagnostics.push({
+                    severity: problem.severity > 1 ? vscode_languageserver.DiagnosticSeverity.Error :vscode_languageserver.DiagnosticSeverity.Warning,
+                    range: range,
+                    message: "[orion-lint] " + problem.message
+                });
+            })
+        }
+        // console.log(diagnostics);
+        connection.sendDiagnostics({ uri:change.document.uri, diagnostics:diagnostics});
     });
+    
 });
 
 // connection.onDidChangeTextDocument(function (params) {
