@@ -22,10 +22,22 @@ function activate(context) {
         }
     };
     // Create the language client and start the client.
-    var disposable = new vscode_languageclient.LanguageClient('orion-tools-server', serverOptions, clientOptions).start();
+    var client = new vscode_languageclient.LanguageClient('orion-tools-server', serverOptions, clientOptions);
+    var disposable = client.start();
     // Push the disposable to the context's subscriptions so that the 
     // client can be deactivated on extension deactivation
     context.subscriptions.push(disposable);
+    
+    client.onNotification({method:"testNotification"}, function(output){
+        console.log("notified!");
+        console.log(output);
+    });
+    
+    vscode.languages.registerHoverProvider("javascript", {
+        provideHover: function (document, position, token) {
+            return new vscode.Hover("I am a hover!");
+        }
+    })
 }
 exports.activate = activate;
 //# sourceMappingURL=extension.js.map

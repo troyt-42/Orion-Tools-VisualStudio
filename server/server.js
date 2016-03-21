@@ -82,6 +82,7 @@ var defaults = {
 	"use-isnan" : 2,
 	"valid-typeof" : 2
 };
+
 documents.onDidChangeContent(function (change) {
     console.log(change);
     var text = change.document._content;
@@ -109,10 +110,13 @@ documents.onDidChangeContent(function (change) {
                     range: range,
                     message: "[orion-lint] " + problem.message
                 });
+                
             })
         }
         // console.log(diagnostics);
         connection.sendDiagnostics({ uri:change.document.uri, diagnostics:diagnostics});
+        connection.sendNotification({method: "testNotification"}, diagnostics);
+
     });
     
 });
