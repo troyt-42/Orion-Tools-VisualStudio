@@ -6,7 +6,7 @@ documents.listen(connection);
 var script_resolver = require("./scriptResolver.js");
 var orion_js_lib = require("./orionJavaScript.js");
 var orion_js = new orion_js_lib(new script_resolver(), false);
-
+var path = require("path");
 
 var workspaceRoot;
 connection.onInitialize(function (params) {
@@ -95,6 +95,7 @@ documents.onDidChangeContent(function (change) {
             var dataToClient = [];
             result.forEach(function(problem){
                 var range, startPosition, endPosition = {};
+                var iconPath = __dirname + "\\orion.png";
                 if (problem.related && problem.related.range){
                     startPosition = change.document.positionAt(problem.related.range[0]);
                     endPosition = change.document.positionAt(problem.related.range[1]);
@@ -113,7 +114,8 @@ documents.onDidChangeContent(function (change) {
                 dataToClient.push({
                     severity: problem.severity > 1 ? vscode_languageserver.DiagnosticSeverity.Error :vscode_languageserver.DiagnosticSeverity.Warning,
                     range: range,
-                    message: "[*ORION*] " + problem.message
+                    // message: "![logo](" + iconPath + ")[`ORION`] " + problem.message
+                    message: "[`ORION`] " + problem.message
                 });
                 
             })
