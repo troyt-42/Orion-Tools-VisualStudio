@@ -92,6 +92,7 @@ documents.onDidChangeContent(function (change) {
         // console.log(result, err);
         if (!err){
             var diagnostics = [];
+            var dataToClient = [];
             result.forEach(function(problem){
                 var range, startPosition, endPosition = {};
                 if (problem.related && problem.related.range){
@@ -107,15 +108,19 @@ documents.onDidChangeContent(function (change) {
                 };
                 diagnostics.push({
                     severity: problem.severity > 1 ? vscode_languageserver.DiagnosticSeverity.Error :vscode_languageserver.DiagnosticSeverity.Warning,
+                    range: range
+                });
+                dataToClient.push({
+                    severity: problem.severity > 1 ? vscode_languageserver.DiagnosticSeverity.Error :vscode_languageserver.DiagnosticSeverity.Warning,
                     range: range,
-                    message: "[orion-lint] " + problem.message
+                    message: "[*ORION*] " + problem.message
                 });
                 
             })
         }
         // console.log(diagnostics);
         connection.sendDiagnostics({ uri:change.document.uri, diagnostics:diagnostics});
-        connection.sendNotification({method: "testNotification"}, diagnostics);
+        connection.sendNotification({method: "testNotification"}, dataToClient);
 
     });
     
