@@ -26,20 +26,20 @@ function activate(context) {
     var disposable = client.start();
     // Push the disposable to the context's subscriptions so that the 
     // client can be deactivated on extension deactivation
-    context.subscriptions.push(disposable);
     
     var bugsHover = [];
+    var errorBugs = [];
+    var warningBugs = [];
     var firstTime = true;
     var statusBarE = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
     var statusBarW = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
     var lintWindow = vscode.window.createOutputChannel("Orion Linter");
-    
-    context.subscriptions.push(statusBarE);
-    context.subscriptions.push(statusBarW);
-    context.subscriptions.push(lintWindow);
-    
     var lastJob = null;
+    
+    statusBarE.command = "orion.JumpToError";
+    statusBarW.command = "orion.JumpToWarning";
     client.onNotification({method:"testNotification"}, function(output){
+        
         var status = output.pop();
         var tempE = status.errorNum <= 1 ? "JSError: " : "JSErrors: "; 
         var tempW = status.warningNum <= 1 ? "JSWarning: " : "JSWarnings: ";
@@ -74,9 +74,20 @@ function activate(context) {
             var problem = output[i];
             var tempStart = new vscode.Position(problem.range.start.line, problem.range.start.character);
             var tempEnd = new vscode.Position(problem.range.end.line, problem.range.end.character);
-            bugsHover.push({start: tempStart, end:tempEnd, hover: new vscode.Hover(problem.message)});
             messageToShow = messageToShow + "[ORION] " + tempStart.line + ":" + tempStart.character + " " + problem.rawMessage + "\n";
+            bugsHover.push({start: tempStart, end:tempEnd, hover: new vscode.Hover(problem.message), severity: problem.severity, label:"[ORION] " + tempStart.line + ":" + tempStart.character + " " + problem.rawMessage});
         };
+        
+        errorBugs = [];
+        warningBugs = [];
+        for(var p = 0; p < bugsHover.length; p++){
+            var problem = bugsHover[p];
+            if (problem.severity === 1){
+                errorBugs.push(problem);
+            } else {
+                warningBugs.push(problem);
+            }
+        }
         // console.log((status.errorNum + status.warningNum) === 0);
         if ((status.errorNum + status.warningNum) === 0 && !firstTime){
             lintWindow.clear();
@@ -115,6 +126,33 @@ function activate(context) {
         }
     });
     
+    var orionLintJumpToErrorCommand = vscode.commands.registerCommand("orion.JumpToError", function(){
+        if (errorBugs.length > 0){
+            vscode.window.showQuickPick(errorBugs, {
+                onDidSelectItem: function(bug){
+                    vscode.window.activeTextEditor.selection = new vscode.Selection(bug.start, bug.end);
+                    vscode.window.activeTextEditor.revealRange(new vscode.Range(bug.start, bug.end));
+                }
+            });
+        }
+    });
+    
+    var orionLintJumpToWarningCommand = vscode.commands.registerCommand("orion.JumpToWarning", function(){
+        if (warningBugs.length > 0){
+            vscode.window.showQuickPick(warningBugs, {
+                onDidSelectItem: function (bug) {
+                    vscode.window.activeTextEditor.selection = new vscode.Selection(bug.start, bug.end);
+                    vscode.window.activeTextEditor.revealRange(new vscode.Range(bug.start, bug.end));
+                }
+            });
+        }
+    })
+    
+    context.subscriptions.push(disposable);
+    context.subscriptions.push(statusBarE);
+    context.subscriptions.push(statusBarW);
+    context.subscriptions.push(lintWindow);
+    context.subscriptions.push(orionLintJumpToErrorCommand);
 
 }
 exports.activate = activate;
