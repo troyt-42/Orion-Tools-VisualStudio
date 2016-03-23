@@ -32,9 +32,11 @@ function activate(context) {
     var firstTime = true;
     var statusBarE = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
     var statusBarW = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
-
+    var lintWindow = vscode.window.createOutputChannel("Orion Linter");
+    
     context.subscriptions.push(statusBarE);
     context.subscriptions.push(statusBarW);
+    context.subscriptions.push(lintWindow);
 
     client.onNotification({method:"testNotification"}, function(output){
         var status = output.pop();
@@ -45,13 +47,31 @@ function activate(context) {
         statusBarE.text = tempIconE + tempE + status.errorNum;
         statusBarW.text = tempIconW + tempW + status.warningNum;
         
-        bugsHover = [];
+        var messageToShow = "";
         for(var i = 0; i < output.length; i++){
             var problem = output[i];
             var tempStart = new vscode.Position(problem.range.start.line, problem.range.start.character);
             var tempEnd = new vscode.Position(problem.range.end.line, problem.range.end.character);
             bugsHover.push({start: tempStart, end:tempEnd, hover: new vscode.Hover(problem.message)});
+            messageToShow = messageToShow + tempStart.line + ":" + tempStart.character + " " + problem.message + "\n";
         };
+        // console.log((status.errorNum + status.warningNum) === 0);
+        if ((status.errorNum + status.warningNum) === 0 && !firstTime){
+            lintWindow.clear();
+            lintWindow.append("No Errors and Warnings");
+            // lintWindow.hide(); // This method does not work as expected: it is not hiding the outputchannel
+            
+        } else if ((status.errorNum + status.warningNum) > 0 ) {
+            lintWindow.clear();
+            lintWindow.show(true);
+            setTimeout(function() {
+                lintWindow.append(messageToShow);
+            }, 500);
+            
+            
+        }
+        
+        bugsHover = [];
         if (firstTime){  
             statusBarE.color = "#faebd7";
             statusBarW.color = "#faebd7";

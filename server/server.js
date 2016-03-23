@@ -124,7 +124,8 @@ documents.onDidChangeContent(function (change) {
                     severity: severity,
                     range: range,
                     // message: "![logo](" + iconPath + ")[`ORION`] " + problem.message
-                    message: "[`ORION`] " + problem.message
+                    message: "[`ORION`] " + problem.message,
+                    rawMessage: problem.message
                 });
                 
             })
