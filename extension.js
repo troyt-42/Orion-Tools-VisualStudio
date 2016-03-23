@@ -43,7 +43,9 @@ function activate(context) {
         borderWidth:"0px 0px 1px 0px",
         borderColor:"#ff2052",
         borderRadius:"1px",
-        borderStyle:"solid"
+        borderStyle:"solid",
+        overviewRulerLane: vscode.OverviewRulerLane.Right,
+        overviewRulerColor: "#ff2052"
     });
     
     var warningDecoration = vscode.window.createTextEditorDecorationType({
@@ -51,7 +53,9 @@ function activate(context) {
         borderWidth:"0px 0px 1px 0px",
         borderColor:"#fdee00",
         borderRadius:"1px",
-        borderStyle:"solid"
+        borderStyle:"solid",
+        overviewRulerLane: vscode.OverviewRulerLane.Right,
+        overviewRulerColor: "#ff2052"
     })
     client.onNotification({method:"testNotification"}, function(output){
         
@@ -94,16 +98,20 @@ function activate(context) {
         };
         errorBugs = [];
         warningBugs = [];
+        var errRanges = [];
+        var warningRanges = [];
         for(var p = 0; p < bugsHover.length; p++){
             var problem = bugsHover[p];
             if (problem.severity === 1){
-                vscode.window.activeTextEditor.setDecorations(errorDecoration, [new vscode.Range(problem.start, problem.end)]);
+                errRanges.push(new vscode.Range(problem.start, problem.end));
                 errorBugs.push(problem);
             } else {
-                vscode.window.activeTextEditor.setDecorations(warningDecoration, [new vscode.Range(problem.start, problem.end)]);
+                warningRanges.push(new vscode.Range(problem.start, problem.end));
                 warningBugs.push(problem);
             }
         }
+        vscode.window.activeTextEditor.setDecorations(errorDecoration, errRanges);
+        vscode.window.activeTextEditor.setDecorations(warningDecoration, warningRanges);
         // console.log((status.errorNum + status.warningNum) === 0);
         if ((status.errorNum + status.warningNum) === 0 && !firstTime){
             lintWindow.clear();
