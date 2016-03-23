@@ -37,7 +37,8 @@ function activate(context) {
     context.subscriptions.push(statusBarE);
     context.subscriptions.push(statusBarW);
     context.subscriptions.push(lintWindow);
-
+    
+    var lastJob = null;
     client.onNotification({method:"testNotification"}, function(output){
         var status = output.pop();
         var tempE = status.errorNum <= 1 ? "JSError: " : "JSErrors: "; 
@@ -48,12 +49,31 @@ function activate(context) {
         statusBarW.text = tempIconW + tempW + status.warningNum;
         
         var messageToShow = "";
+        lintWindow.show(true);
+        if (lastJob !== null) {
+            clearTimeout(lastJob);
+        }
+        output.sort(function(a, b){
+           if (a.range.start.line > b.range.start.line){
+               return 1;
+           } else if (a.range.start.line === b.range.start.line){
+               if(a.range.start.character > b.range.start.character){
+                   return 1
+               } else if (a.range.start.character === b.range.start.character){
+                   return 0
+               } else {
+                   return -1;
+               }
+           } else {
+               return -1;
+           }
+        });
         for(var i = 0; i < output.length; i++){
             var problem = output[i];
             var tempStart = new vscode.Position(problem.range.start.line, problem.range.start.character);
             var tempEnd = new vscode.Position(problem.range.end.line, problem.range.end.character);
             bugsHover.push({start: tempStart, end:tempEnd, hover: new vscode.Hover(problem.message)});
-            messageToShow = messageToShow + tempStart.line + ":" + tempStart.character + " " + problem.message + "\n";
+            messageToShow = messageToShow + "[ORION] " + tempStart.line + ":" + tempStart.character + " " + problem.rawMessage + "\n";
         };
         // console.log((status.errorNum + status.warningNum) === 0);
         if ((status.errorNum + status.warningNum) === 0 && !firstTime){
@@ -62,13 +82,10 @@ function activate(context) {
             // lintWindow.hide(); // This method does not work as expected: it is not hiding the outputchannel
             
         } else if ((status.errorNum + status.warningNum) > 0 ) {
-            lintWindow.clear();
-            lintWindow.show(true);
-            setTimeout(function() {
+            lastJob = setTimeout(function() {
+                lintWindow.clear();
                 lintWindow.append(messageToShow);
             }, 500);
-            
-            
         }
         
         bugsHover = [];
