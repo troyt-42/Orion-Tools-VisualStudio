@@ -27,7 +27,7 @@ function activate(context) {
     // Push the disposable to the context's subscriptions so that the 
     // client can be deactivated on extension deactivation
     
-    var bugsHover = [];
+  
     var errorBugs = [];
     var warningBugs = [];
     var firstTime = true;
@@ -88,31 +88,27 @@ function activate(context) {
            }
         });
         
-        bugsHover = [];
-        for(var i = 0; i < output.length; i++){
-            var problem = output[i];
-            var tempStart = new vscode.Position(problem.range.start.line, problem.range.start.character);
-            var tempEnd = new vscode.Position(problem.range.end.line, problem.range.end.character);
-            messageToShow = messageToShow + "[ORION] " + tempStart.line + ":" + tempStart.character + " " + problem.rawMessage + "\n";
-            bugsHover.push({start: tempStart, end:tempEnd, hover: new vscode.Hover(problem.message), severity: problem.severity, label:"[ORION] " + tempStart.line + ":" + tempStart.character + " " + problem.rawMessage});
-        };
         errorBugs = [];
         warningBugs = [];
         var errRanges = [];
         var warningRanges = [];
-        for(var p = 0; p < bugsHover.length; p++){
-            var problem = bugsHover[p];
-            if (problem.severity === 1){
-                errRanges.push(new vscode.Range(problem.start, problem.end));
-                errorBugs.push(problem);
+        for(var p = 0; p < output.length; p++){
+            var problem = output[p];
+            var tempStart = new vscode.Position(problem.range.start.line, problem.range.start.character);
+            var tempEnd = new vscode.Position(problem.range.end.line, problem.range.end.character);
+            messageToShow = messageToShow + "[ORION] " + tempStart.line + ":" + tempStart.character + " " + problem.rawMessage + "\n";
+
+            if (problem.severity <= 1){
+                errRanges.push({range : new vscode.Range(tempStart, tempEnd), hoverMessage:problem.message});
+                errorBugs.push({range : new vscode.Range(tempStart, tempEnd), label:"[ORION] " + tempStart.line + ":" + tempStart.character + " " + problem.rawMessage});
             } else {
-                warningRanges.push(new vscode.Range(problem.start, problem.end));
-                warningBugs.push(problem);
+                warningRanges.push({range : new vscode.Range(tempStart, tempEnd), hoverMessage:problem.message, label:"[ORION] " + tempStart.line + ":" + tempStart.character + " " + problem.rawMessage});
+                warningBugs.push({range : new vscode.Range(tempStart, tempEnd), label:"[ORION] " + tempStart.line + ":" + tempStart.character + " " + problem.rawMessage});
             }
         }
+        
         vscode.window.activeTextEditor.setDecorations(errorDecoration, errRanges);
         vscode.window.activeTextEditor.setDecorations(warningDecoration, warningRanges);
-        // console.log((status.errorNum + status.warningNum) === 0);
         if ((status.errorNum + status.warningNum) === 0 && !firstTime){
             lintWindow.clear();
             lintWindow.append("No Errors and Warnings");
@@ -124,28 +120,12 @@ function activate(context) {
                 lintWindow.append(messageToShow);
             }, 500);
         }
-       
+        
         if (firstTime){  
-            console.log(output);
             statusBarE.color = "#faebd7";
             statusBarW.color = "#faebd7";
             statusBarE.show();
-            statusBarW.show();statusBarE.color = "#faebd7";
-            statusBarE.color = "#faebd7";
-            statusBarE.show();
             statusBarW.show();
-            var disposable = vscode.languages.registerHoverProvider("javascript", {
-                provideHover: function (document, position, token) {
-                    for (var index = 0; index < bugsHover.length; index++) {
-                        var hover = bugsHover[index];
-                        if (position.isAfterOrEqual(hover.start) && position.isBeforeOrEqual(hover.end)){
-                            return hover.hover;
-                        }
-                    }
-                    return null;
-                }
-            }); 
-            context.subscriptions.push(disposable);
             firstTime = false;
         }
     });
@@ -154,8 +134,8 @@ function activate(context) {
         if (errorBugs.length > 0){
             vscode.window.showQuickPick(errorBugs, {
                 onDidSelectItem: function(bug){
-                    vscode.window.activeTextEditor.selection = new vscode.Selection(bug.start, bug.end);
-                    vscode.window.activeTextEditor.revealRange(new vscode.Range(bug.start, bug.end));
+                    vscode.window.activeTextEditor.selection = new vscode.Selection(bug.range.start, bug.range.end);
+                    vscode.window.activeTextEditor.revealRange(bug.range);
                 }
             });
         }
@@ -165,8 +145,8 @@ function activate(context) {
         if (warningBugs.length > 0){
             vscode.window.showQuickPick(warningBugs, {
                 onDidSelectItem: function (bug) {
-                    vscode.window.activeTextEditor.selection = new vscode.Selection(bug.start, bug.end);
-                    vscode.window.activeTextEditor.revealRange(new vscode.Range(bug.start, bug.end));
+                    vscode.window.activeTextEditor.selection = new vscode.Selection(bug.range.start, bug.range.end);
+                    vscode.window.activeTextEditor.revealRange(bug.range);
                 }
             });
         }
