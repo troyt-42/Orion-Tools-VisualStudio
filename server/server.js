@@ -134,8 +134,7 @@ documents.onDidChangeContent(function (change) {
                 warningNum: warningNum
             });
         }
-        // console.log(diagnostics);
-        console.log(dataToClient)
+        console.log(diagnostics);
         connection.sendDiagnostics({ uri:change.document.uri, diagnostics:diagnostics});
         connection.sendNotification({method: "testNotification"}, dataToClient);
 

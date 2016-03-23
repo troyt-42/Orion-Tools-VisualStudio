@@ -58,9 +58,9 @@ function activate(context) {
                return 1;
            } else if (a.range.start.line === b.range.start.line){
                if(a.range.start.character > b.range.start.character){
-                   return 1
+                   return 1;
                } else if (a.range.start.character === b.range.start.character){
-                   return 0
+                   return 0;
                } else {
                    return -1;
                }
@@ -68,6 +68,8 @@ function activate(context) {
                return -1;
            }
         });
+        
+        bugsHover = [];
         for(var i = 0; i < output.length; i++){
             var problem = output[i];
             var tempStart = new vscode.Position(problem.range.start.line, problem.range.start.character);
@@ -79,7 +81,7 @@ function activate(context) {
         if ((status.errorNum + status.warningNum) === 0 && !firstTime){
             lintWindow.clear();
             lintWindow.append("No Errors and Warnings");
-            // lintWindow.hide(); // This method does not work as expected: it is not hiding the outputchannel
+            lintWindow.hide(); // This method does not work as expected: it is not hiding the outputchannel
             
         } else if ((status.errorNum + status.warningNum) > 0 ) {
             lastJob = setTimeout(function() {
@@ -87,9 +89,9 @@ function activate(context) {
                 lintWindow.append(messageToShow);
             }, 500);
         }
-        
-        bugsHover = [];
+       
         if (firstTime){  
+            console.log(output);
             statusBarE.color = "#faebd7";
             statusBarW.color = "#faebd7";
             statusBarE.show();
