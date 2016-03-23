@@ -30,7 +30,21 @@ function activate(context) {
     
     var bugsHover = [];
     var firstTime = true;
+    var statusBarE = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
+    var statusBarW = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
+
+    context.subscriptions.push(statusBarE);
+    context.subscriptions.push(statusBarW);
+
     client.onNotification({method:"testNotification"}, function(output){
+        var status = output.pop();
+        var tempE = status.errorNum <= 1 ? "JSError: " : "JSErrors: "; 
+        var tempW = status.warningNum <= 1 ? "JSWarning: " : "JSWarnings: ";
+        var tempIconE = status.errorNum === 0 ? "$(check) " : "$(x) ";
+        var tempIconW = status.warningNum === 0 ? "$(check) " : "$(alert) ";
+        statusBarE.text = tempIconE + tempE + status.errorNum;
+        statusBarW.text = tempIconW + tempW + status.warningNum;
+        
         bugsHover = [];
         for(var i = 0; i < output.length; i++){
             var problem = output[i];
@@ -39,6 +53,13 @@ function activate(context) {
             bugsHover.push({start: tempStart, end:tempEnd, hover: new vscode.Hover(problem.message)});
         };
         if (firstTime){  
+            statusBarE.color = "#faebd7";
+            statusBarW.color = "#faebd7";
+            statusBarE.show();
+            statusBarW.show();statusBarE.color = "#faebd7";
+            statusBarE.color = "#faebd7";
+            statusBarE.show();
+            statusBarW.show();
             var disposable = vscode.languages.registerHoverProvider("javascript", {
                 provideHover: function (document, position, token) {
                     for (var index = 0; index < bugsHover.length; index++) {

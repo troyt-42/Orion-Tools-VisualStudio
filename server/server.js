@@ -88,11 +88,14 @@ documents.onDidChangeContent(function (change) {
     var text = change.document._content;
     var name = change.document._uri;
     var type = "full";
+    
     orion_js.Tern.lint(name, defaults, null, [{type: type, name: name, text: text}], function(result, err){
         // console.log(result, err);
         if (!err){
             var diagnostics = [];
             var dataToClient = [];
+            var errorNum = 0;
+            var warningNum = 0;
             result.forEach(function(problem){
                 var range, startPosition, endPosition = {};
                 var iconPath = __dirname + "\\orion.png";
@@ -107,20 +110,31 @@ documents.onDidChangeContent(function (change) {
                     start: { line: startPosition.line, character: startPosition.character },
                     end: { line: endPosition.line, character: endPosition.character }
                 };
+                var severity = problem.severity > 1 ? vscode_languageserver.DiagnosticSeverity.Error :vscode_languageserver.DiagnosticSeverity.Warning;
+                if (severity === vscode_languageserver.DiagnosticSeverity.Error){
+                    errorNum++;
+                } else {
+                    warningNum++;
+                }
                 diagnostics.push({
-                    severity: problem.severity > 1 ? vscode_languageserver.DiagnosticSeverity.Error :vscode_languageserver.DiagnosticSeverity.Warning,
+                    severity:severity,
                     range: range
                 });
                 dataToClient.push({
-                    severity: problem.severity > 1 ? vscode_languageserver.DiagnosticSeverity.Error :vscode_languageserver.DiagnosticSeverity.Warning,
+                    severity: severity,
                     range: range,
                     // message: "![logo](" + iconPath + ")[`ORION`] " + problem.message
                     message: "[`ORION`] " + problem.message
                 });
                 
             })
+            dataToClient.push({
+                errorNum: errorNum,
+                warningNum: warningNum
+            });
         }
         // console.log(diagnostics);
+        console.log(dataToClient)
         connection.sendDiagnostics({ uri:change.document.uri, diagnostics:diagnostics});
         connection.sendNotification({method: "testNotification"}, dataToClient);
 
