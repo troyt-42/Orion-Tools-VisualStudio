@@ -38,12 +38,27 @@ function activate(context) {
     
     statusBarE.command = "orion.JumpToError";
     statusBarW.command = "orion.JumpToWarning";
+    var errorDecoration = vscode.window.createTextEditorDecorationType({
+        gutterIconPath: path.join(__dirname+"/error.svg"),
+        borderWidth:"0px 0px 1px 0px",
+        borderColor:"#ff2052",
+        borderRadius:"1px",
+        borderStyle:"solid"
+    });
+    
+    var warningDecoration = vscode.window.createTextEditorDecorationType({
+        gutterIconPath: path.join(__dirname+"/warning.svg"),
+        borderWidth:"0px 0px 1px 0px",
+        borderColor:"#fdee00",
+        borderRadius:"1px",
+        borderStyle:"solid"
+    })
     client.onNotification({method:"testNotification"}, function(output){
         
         var status = output.pop();
         var tempE = status.errorNum <= 1 ? "JSError: " : "JSErrors: "; 
         var tempW = status.warningNum <= 1 ? "JSWarning: " : "JSWarnings: ";
-        var tempIconE = status.errorNum === 0 ? "$(check) " : "$(x) ";
+        var tempIconE = status.errorNum === 0 ? "$(check) " : "$(issue-opened) ";
         var tempIconW = status.warningNum === 0 ? "$(check) " : "$(alert) ";
         statusBarE.text = tempIconE + tempE + status.errorNum;
         statusBarW.text = tempIconW + tempW + status.warningNum;
@@ -77,14 +92,15 @@ function activate(context) {
             messageToShow = messageToShow + "[ORION] " + tempStart.line + ":" + tempStart.character + " " + problem.rawMessage + "\n";
             bugsHover.push({start: tempStart, end:tempEnd, hover: new vscode.Hover(problem.message), severity: problem.severity, label:"[ORION] " + tempStart.line + ":" + tempStart.character + " " + problem.rawMessage});
         };
-        
         errorBugs = [];
         warningBugs = [];
         for(var p = 0; p < bugsHover.length; p++){
             var problem = bugsHover[p];
             if (problem.severity === 1){
+                vscode.window.activeTextEditor.setDecorations(errorDecoration, [new vscode.Range(problem.start, problem.end)]);
                 errorBugs.push(problem);
             } else {
+                vscode.window.activeTextEditor.setDecorations(warningDecoration, [new vscode.Range(problem.start, problem.end)]);
                 warningBugs.push(problem);
             }
         }
@@ -147,6 +163,8 @@ function activate(context) {
             });
         }
     })
+    
+    
     
     context.subscriptions.push(disposable);
     context.subscriptions.push(statusBarE);

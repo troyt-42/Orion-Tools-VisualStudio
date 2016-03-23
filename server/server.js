@@ -92,7 +92,6 @@ documents.onDidChangeContent(function (change) {
     orion_js.Tern.lint(name, defaults, null, [{type: type, name: name, text: text}], function(result, err){
         // console.log(result, err);
         if (!err){
-            var diagnostics = [];
             var dataToClient = [];
             var errorNum = 0;
             var warningNum = 0;
@@ -116,10 +115,6 @@ documents.onDidChangeContent(function (change) {
                 } else {
                     warningNum++;
                 }
-                diagnostics.push({
-                    severity:severity,
-                    range: range
-                });
                 dataToClient.push({
                     severity: severity,
                     range: range,
@@ -134,8 +129,6 @@ documents.onDidChangeContent(function (change) {
                 warningNum: warningNum
             });
         }
-        console.log(diagnostics);
-        connection.sendDiagnostics({ uri:change.document.uri, diagnostics:diagnostics});
         connection.sendNotification({method: "testNotification"}, dataToClient);
 
     });
