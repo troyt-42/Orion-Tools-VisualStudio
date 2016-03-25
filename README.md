@@ -9,3 +9,4 @@ A collection of plugins that provide Orion tools for Visual Studio.
 
 ### Screenshot ###
 <img src="./screenshot.png"/>
+<img src="./screenshot2.png"/>
