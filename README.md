@@ -8,5 +8,5 @@ A collection of plugins that provide Orion tools for Visual Studio.
 4. Press `F5` and the linter is loaded in the pop up "Extenion Host" window.
 
 ### Screenshot ###
-<img src="./images/screenshot.png"/>
+<img src="./images/screenshot1.png"/>
 <img src="./images/screenshot2.png"/>
